@@ -1,11 +1,13 @@
 data {
   int<lower=1> N;
+  int<lower=1> L; # number of priors
   int<lower=1> P; # number of replicates
   int<lower=1> K; # number of latent functions
   matrix[P,K] design;
+  int<lower=1, upper=L> prior[K]; # prior assignment for each function
 
-  real<lower=0> length_scale;
-  real<lower=0> alpha;
+  real<lower=0> length_scale[L];
+  real<lower=0> alpha[L];
   real<lower=0> sigma;
 }
 transformed data {
@@ -24,7 +26,7 @@ generated quantities {
   {
     matrix[N, N] cov;
     matrix[N, N] L_cov;
-    cov = cov_exp_quad(x, alpha, length_scale);
+    cov = cov_exp_quad(x, alpha[prior[i]], length_scale[prior[i]]);
     for (n in 1:N)
       cov[n, n] = cov[n, n] + 1e-12;
     L_cov = cholesky_decompose(cov);
